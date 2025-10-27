@@ -14,6 +14,7 @@ struct Coordinate {
 struct Map {
     int n;
     std::vector<Coordinate> coordinates;
+    double x,y;
 };
 
 // result TSP tour
@@ -122,7 +123,7 @@ void randomTSP(const Map& map, Tour& tour) {
     calculateDist(tour, map);
 }
 
-void createGroups(const Map& map, std::vector<std::vector<Coordinate>>& groups, int k) {
+void createGroups(const Map& map, std::vector<Map>& groups, int k) {
     std::vector<int> groupLeaders;
     std::vector<bool> used = std::vector<bool>(map.n, false);
 
@@ -151,8 +152,8 @@ void createGroups(const Map& map, std::vector<std::vector<Coordinate>>& groups, 
         // add the best candidate to the group leaders
         groupLeaders.push_back(maxDistPos);
         used[maxDistPos] = true;
-        std::vector<Coordinate> newGroup;
-        newGroup.push_back(map.coordinates[maxDistPos]);
+        Map newGroup;
+        newGroup.coordinates.push_back(map.coordinates[maxDistPos]);
         groups.push_back(newGroup);
     }
     // create groups based on the group leaders
@@ -171,34 +172,64 @@ void createGroups(const Map& map, std::vector<std::vector<Coordinate>>& groups, 
                 minDist = dist;
             }
         }
-        groups[minDistLeader].push_back(map.coordinates[i]);
+        groups[minDistLeader].coordinates.push_back(map.coordinates[i]);
         used[i] = true;
     }
 }
 
 void groupTSP(const Map& map, Tour& tour, int k) {
-    std::vector<std::vector<Coordinate>> groups;
+    std::vector<Map> groups;
     createGroups(map, groups, k);
 
+    // calc group avg positions
+    Map groupOrderMap;
+    groupOrderMap.n = groups.size();
+    int i = 0;
+    for(auto& group : groups){
+        double avgX = 0.0;
+        double avgY = 0.0;
+        for(const auto& coord : group.coordinates){
+            avgX += coord.x;
+            avgY += coord.y;
+        }
+        avgX /= group.coordinates.size();
+        avgY /= group.coordinates.size();
+        group.x += avgX;
+        group.y += avgY;
+        groupOrderMap.coordinates.push_back({i, avgX, avgY});
+        i++;
+    }
+    Tour groupOrderTour;
+    naiveTSP(groupOrderMap, groupOrderTour, groupOrderMap.n);
+
     tour.path.clear();
-    for (const auto& group : groups) {
+
+    // insert group tours
+    for (int i = 0; i < groupOrderTour.m; i++) {
+        int groupIdx = groupOrderTour.path[i];
+        Map& group = groups[groupIdx];
+
         Tour groupTour;
-        groupTour.path.resize(group.size());
+        groupTour.path.resize(group.coordinates.size());
 
         Map groupMap;
-        groupMap.n = group.size();
-        groupMap.coordinates = std::vector<Coordinate>(group);
+        groupMap.n = static_cast<int>(group.coordinates.size());
+        groupMap.coordinates = std::vector<Coordinate>(group.coordinates);
 
-        for(int i = 0; i < group.size(); ++i){
-            groupMap.coordinates[i].id = i;
+        for (int j = 0; j < groupMap.n; ++j) {
+            groupMap.coordinates[j].id = j;
         }
-        naiveTSP(groupMap, groupTour, map.n);
-        for(int i = 0; i < groupTour.m; i++){
-            groupTour.path[i] = group[groupTour.path[i]].id;
+
+        naiveTSP(groupMap, groupTour, groupMap.n);
+
+        for (int j = 0; j < groupTour.m; ++j) {
+            int localIdx = groupTour.path[j];
+            int originalId = group.coordinates[localIdx].id;
+            tour.path.push_back(originalId);
         }
-        tour.path.insert(tour.path.end(), groupTour.path.begin(), groupTour.path.end());
     }
-    tour.m = tour.path.size();
+
+    tour.m = static_cast<int>(tour.path.size());
     calculateDist(tour, map);
 
 }
@@ -227,7 +258,7 @@ int main(void) {
     // printTour(randomTour);
 
     Tour groupTour;
-    int k = static_cast<int>(std::round(map.n / 10.0));
+    int k = static_cast<int>(std::round(std::sqrt(map.n)));
     if (k < 1) k = 1;
     // if (k >= map.n) k = map.n - 1;
     groupTSP(map, groupTour, k);
