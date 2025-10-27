@@ -3,6 +3,7 @@
 using namespace std;
 
 struct Coordinate {
+    int id;
     double x;
     double y;
 };
@@ -10,6 +11,11 @@ struct Coordinate {
 struct Map {
     int n;
     std::vector<Coordinate> coordinates;
+};
+
+struct Tour {
+    int m;
+    std::vector<int> path;
 };
 
 void readMap(Map& map) {
@@ -23,7 +29,7 @@ void readMap(Map& map) {
     for (int i = 0; i < map.n; ++i) {
         double x, y;
         std::cin >> x >> y;
-        Coordinate coord = {x, y};
+        Coordinate coord = {i, x, y};
         map.coordinates[i] = coord;
     }
 }
@@ -31,7 +37,7 @@ void readMap(Map& map) {
 void printMap(const Map& map) {
     // print every point on the map
     for (const auto& coord : map.coordinates) {
-        std::cout << coord.x << " " << coord.y << std::endl;
+        std::cout << coord.id << ": " << coord.x << " " << coord.y << std::endl;
     }
 }
 
