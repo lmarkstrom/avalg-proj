@@ -330,6 +330,11 @@ int main(void) {
     // printMap(map);
 
     // naive TSP
+
+    
+
+
+
     Tour naiveTour;
     naiveTSP(map, naiveTour, 0);
 
@@ -343,12 +348,8 @@ int main(void) {
         }
     }
 
-    //group TSP
-    Tour groupTour;
-    int k = static_cast<int>(std::round(std::sqrt(map.n)));
-    if (k < 1) k = 1;
-    if (k >= map.n) k = map.n - 1;
-    groupTSP(map, groupTour, k);
+    
+    
     
     //optimized naive TSP
     Tour optimizedTour;
@@ -357,9 +358,19 @@ int main(void) {
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
 
+    if(map.n > 20){
+        //group TSP
+        Tour groupTour;
+        int k = static_cast<int>(std::round(std::sqrt(map.n)));
+        groupTSP(map, groupTour, k);
+        printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+
+    }else{
+        printKattis(randomTour, naiveTour, optimizedTour, optimizedTour);
+    }
     //printDev(randomTour, naiveTour, groupTour, optimizedTour);
-    //printKattis(randomTour, naiveTour, groupTour, optimizedTour);
-    printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
+
+    //printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
 }
