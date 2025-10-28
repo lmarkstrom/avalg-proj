@@ -139,9 +139,7 @@ void createGroups(const Map& map, std::vector<Map>& groups, int k) {
             // calculate total distance to leaders
             double dist = 0.0;
             for(const auto& leader : groupLeaders){
-                double dx = map.coordinates[i].x - map.coordinates[leader].x;
-                double dy = map.coordinates[i].y - map.coordinates[leader].y;
-                dist += std::sqrt(dx * dx + dy * dy);
+                dist += distance(map.coordinates[i], map.coordinates[leader]);
             }
             // update max pos
             if(maxDistPos == -1 || dist > maxDist){
