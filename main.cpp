@@ -50,9 +50,9 @@ void printMap(const Map& map) {
 void printTour(const Tour& tour) {
     // print each point in tour
     for (const auto& node : tour.path) {
-        // std::cout << node << "\n";
+        std::cout << node << "\n";
     }
-    std::cout << tour.dist << std::endl;
+    // std::cout << tour.dist << std::endl;
     // std::cout << std::endl;
 }
 
@@ -136,15 +136,18 @@ void createGroups(const Map& map, std::vector<Map>& groups, int k) {
             if(used[i]){
                 continue;
             }
-            // calculate total distance to leaders
-            double dist = 0.0;
+            // calculate lowest distance to a leader
+            double lowestDistToLeader = -1.0;
             for(const auto& leader : groupLeaders){
-                dist += distance(map.coordinates[i], map.coordinates[leader]);
+                double dist = distance(map.coordinates[i], map.coordinates[leader]);
+                if(dist < lowestDistToLeader || lowestDistToLeader == -1.0){
+                    lowestDistToLeader = dist;
+                }
             }
             // update max pos
-            if(maxDistPos == -1 || dist > maxDist){
+            if(maxDistPos == -1 || lowestDistToLeader > maxDist){
                 maxDistPos = i;
-                maxDist = dist;
+                maxDist = lowestDistToLeader;
             }
         }
         // add the best candidate to the group leaders
@@ -338,6 +341,7 @@ int main(void) {
     int depth = 2;
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
+
 
     printDev(randomTour, naiveTour, groupTour, optimizedTour);
     printKattis(randomTour, naiveTour, groupTour, optimizedTour);
