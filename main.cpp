@@ -290,25 +290,13 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
-void printBestDistance(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour) {
-    double bestDist = randomTour.dist;
-    std::string label = "Random";
-
-    if (naiveTour.dist < bestDist) {
-        bestDist = naiveTour.dist;
-        label = "Naive";
-    }
-    if (groupTour.dist < bestDist) {
-        bestDist = groupTour.dist;
-        label = "Group";
-    }
-    if (optimizedTour.dist < bestDist) {
-        bestDist = optimizedTour.dist;
-        label = "Optimized";
-    }
-
-    std::cout << label << " tour distance: " << bestDist << std::endl;
+void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour) {
+    std::cout << "Naive tour distance: " << naiveTour.dist << std::endl;
+    std::cout << "Random tour distance: " << randomTour.dist << std::endl;
+    std::cout << "Group tour distance: " << groupTour.dist << std::endl;
+    std::cout << "Optimized tour distance: " << optimizedTour.dist << std::endl;
 }
+
 
 void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
     std::cout << "Naive tour: \n";
@@ -371,7 +359,7 @@ int main(void) {
 
     //printDev(randomTour, naiveTour, groupTour, optimizedTour);
     //printKattis(randomTour, naiveTour, groupTour, optimizedTour);
-    printBestDistance(randomTour, naiveTour, groupTour, optimizedTour);
+    printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
 }
