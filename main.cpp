@@ -314,18 +314,25 @@ void graphTSP(const Map& map, Tour& tour) {
     }
     // remove longest edges except two shortest edges for every node
     for (int i = 0; i < graph.n; ++i) {
-        // sort and filter out dist < 0
-        std::vector<double> nodeEdges = graph.edges[i];
-        nodeEdges.erase(std::remove(nodeEdges.begin(), nodeEdges.end(), -1.0), nodeEdges.end());
-        std::sort(nodeEdges.begin(), nodeEdges.end(), std::greater<double>());
-        for (int j = 1; j < nodeEdges.size(); ++j) {
+        // pair (distance, node
+        std::vector<std::pair<double, int>> nodeEdges;
+        for (int j = 0; j < graph.n; ++j) {
+            if (graph.edges[i][j] > 0) {
+                nodeEdges.push_back({graph.edges[i][j], j});
+            }
+        }
+        // sort
+        std::sort(nodeEdges.begin(), nodeEdges.end());
+        
+        // keep only 2 shortest
+        for (int k = 2; k < nodeEdges.size(); ++k) {
+            int j = nodeEdges[k].second;
             if(graph.numEdges[i] > 2 && graph.numEdges[j] > 2){
                 graph.edges[i][j] = -1.0;
                 graph.edges[j][i] = -1.0;
                 graph.numEdges[i]--;
                 graph.numEdges[j]--;
             }
-            
         }
     }
     //print graph edges
