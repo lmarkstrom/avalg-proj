@@ -50,9 +50,9 @@ void printMap(const Map& map) {
 void printTour(const Tour& tour) {
     // print each point in tour
     for (const auto& node : tour.path) {
-        // std::cout << node << "\n";
+        std::cout << node << "\n";
     }
-    std::cout << tour.dist << std::endl;
+    // std::cout << tour.dist << std::endl;
     // std::cout << std::endl;
 }
 
@@ -283,8 +283,8 @@ int main(void) {
     // naive TSP
     Tour naiveTour;
     naiveTSP(map, naiveTour, 0);
-    std::cout << "Naive tour: \n";
-    printTour(naiveTour);
+    // std::cout << "Naive tour: \n";
+    // printTour(naiveTour);
 
     // random TSP
     Tour randomTour;
@@ -296,8 +296,8 @@ int main(void) {
         }
     }
     
-    std::cout << "Random tour: \n";
-    printTour(randomTour);
+    // std::cout << "Random tour: \n";
+    // printTour(randomTour);
 
     Tour groupTour;
     int k = static_cast<int>(std::round(std::sqrt(map.n)));
@@ -312,31 +312,25 @@ int main(void) {
     // printTour(randomTour);
     // std::cout << "Group tour: \n";
     // printTour(groupTour);
-
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < groupTour.dist){
-        printTour(randomTour);
-    } else if(naiveTour.dist < groupTour.dist){
-        printTour(naiveTour);
-    } else {
-        printTour(groupTour);
-    }
-    std::cout << "Group tour: \n";
-    printTour(groupTour);
+    // std::cout << "Group tour: \n";
+    // printTour(groupTour);
 
     Tour optimizedTour;
     int depth = 2;
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
-    std::cout << "Optimized tour: \n";
-    printTour(optimizedTour);
+    // std::cout << "Optimized tour: \n";
+    // printTour(optimizedTour);
 
-    // if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist){
-    //     printTour(randomTour);
-    // } else if(naiveTour.dist < optimizedTour.dist){
-    //     printTour(naiveTour);
-    // } else {
-    //     printTour(optimizedTour);
-    // }
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist){
+        printTour(randomTour);
+    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist){
+        printTour(naiveTour);
+    } else if (groupTour.dist < optimizedTour.dist){
+        printTour(groupTour);
+    } else {
+        printTour(optimizedTour);
+    }
 
     return 0; 
 }
