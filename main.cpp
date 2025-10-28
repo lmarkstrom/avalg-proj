@@ -50,9 +50,9 @@ void printMap(const Map& map) {
 void printTour(const Tour& tour) {
     // print each point in tour
     for (const auto& node : tour.path) {
-        // std::cout << node << "\n";
+        std::cout << node << "\n";
     }
-    std::cout << tour.dist << std::endl;
+    // std::cout << tour.dist << std::endl;
     // std::cout << std::endl;
 }
 
@@ -243,8 +243,6 @@ int main(void) {
     // naive TSP
     Tour naiveTour;
     naiveTSP(map, naiveTour, map.n);
-    std::cout << "Naive tour: \n";
-    printTour(naiveTour);
 
     // random TSP
     Tour randomTour;
@@ -255,24 +253,29 @@ int main(void) {
             randomTour = randomTourTmp;
         }
     }
-    std::cout << "Random tour: \n";
-    printTour(randomTour);
+    
 
     Tour groupTour;
     int k = static_cast<int>(std::round(std::sqrt(map.n)));
     if (k < 1) k = 1;
     // if (k >= map.n) k = map.n - 1;
     groupTSP(map, groupTour, k);
-    std::cout << "Group tour: \n";
-    printTour(groupTour);
+    
 
-    // if(randomTour.dist < naiveTour.dist && randomTour.dist < groupTour.dist){
-    //     printTour(randomTour);
-    // } else if(naiveTour.dist < groupTour.dist){
-    //     printTour(naiveTour);
-    // } else {
-    //     printTour(groupTour);
-    // }
+    // std::cout << "Naive tour: \n";
+    // printTour(naiveTour);
+    // std::cout << "Random tour: \n";
+    // printTour(randomTour);
+    // std::cout << "Group tour: \n";
+    // printTour(groupTour);
+
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < groupTour.dist){
+        printTour(randomTour);
+    } else if(naiveTour.dist < groupTour.dist){
+        printTour(naiveTour);
+    } else {
+        printTour(groupTour);
+    }
 
     return 0; 
 }
