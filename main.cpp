@@ -333,7 +333,7 @@ int main(void) {
     Tour groupTour;
     int k = static_cast<int>(std::round(std::sqrt(map.n)));
     if (k < 1) k = 1;
-    if (k >= map.n) k = map.n - 1;
+    //if (k >= map.n) k = map.n - 1;
     groupTSP(map, groupTour, k);
     
     // optimized naive TSP
