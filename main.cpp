@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 // coordinate struct
@@ -22,6 +23,17 @@ struct Tour {
     int m;
     std::vector<int> path;
     double dist;
+};
+
+struct Edge {
+    int from;
+    int to;
+    double weight;
+};
+
+struct Graph {
+    int n;
+    std::vector<std::vector<Edge>> edges;
 };
 
 void readMap(Map& map) {
@@ -286,6 +298,41 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
+void graphTSP(const Map& map, Tour& tour) {
+    Graph graph;
+    graph.n = map.n;
+    graph.edges.resize(map.n);
+    // init vectors
+    for (int i = 0; i < map.n; ++i) {
+        graph.edges[i] = std::vector<Edge>(map.n-1);
+    }
+    // add all edges
+    for (int i = 0; i < map.n; ++i) {
+        for (int j = 0; j < map.n; ++j) {
+            if (i != j) {
+                double dist = distance(map.coordinates[i], map.coordinates[j]);
+                graph.edges[i][j] = {i, j, dist};
+            }
+        }
+    }
+    // remove longest edges except two shortest edges for every node
+    for (int i = 0; i < graph.n; ++i) {
+        std::vector<Edge> nodeEdges = graph.edges[i];
+        std::sort(nodeEdges.begin(), nodeEdges.end(), [](const Edge& a, const Edge& b) {
+            return a.weight > b.weight;
+        });
+        for (int j = 2; j < nodeEdges.size(); ++j) {
+            // check if node still has 2 edges left if removed
+            if(graph.edges[j].size() > 2){
+                // remove edge
+                // graph.edges[i][j] = null;
+                // graph.edges[j][i] = null;
+            }
+            
+        }
+    }
+}
+
 void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
     std::cout << "Naive tour: \n";
     printTour(naiveTour);
@@ -344,9 +391,12 @@ int main(void) {
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
+    // create graph to create tour
+    Tour graph;
+    graphTSP(map, graph);
 
-    // printDev(randomTour, naiveTour, groupTour, optimizedTour);
-    printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+    printDev(randomTour, naiveTour, groupTour, optimizedTour, graph);
+    // printKattis(randomTour, naiveTour, groupTour, optimizedTour, graph);
 
     return 0; 
 }
