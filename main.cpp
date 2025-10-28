@@ -84,10 +84,10 @@ void naiveTSP(const Map& map, Tour& tour, int start) {
     used[start] = true;
 
     // construct tour
-    for (int i = 0; i < tour.m; ++i) {
+    for (int i = 1; i < tour.m; ++i) {
         int best = -1;
         for (int j = 0; j < map.n; ++j) {
-            if (!used[j] && (best == -1 || distance(map.coordinates[j], map.coordinates[tour.path[i]]) < distance(map.coordinates[best], map.coordinates[tour.path[i]]))) {
+            if (!used[j] && (best == -1 || distance(map.coordinates[j], map.coordinates[tour.path[i-1]]) < distance(map.coordinates[best], map.coordinates[tour.path[i-1]]))) {
                 best = j;
             }
         }
@@ -301,10 +301,12 @@ void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimize
 }
 
 void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist){
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist){
         printTour(randomTour);
-    } else if(naiveTour.dist < optimizedTour.dist){
+    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist){
         printTour(naiveTour);
+    } else if (groupTour.dist < optimizedTour.dist){
+        printTour(groupTour);
     } else {
         printTour(optimizedTour);
     }
@@ -329,21 +331,21 @@ int main(void) {
         }
     }
 
-    // group TSP
+    //group TSP
     Tour groupTour;
     int k = static_cast<int>(std::round(std::sqrt(map.n)));
     if (k < 1) k = 1;
     if (k >= map.n) k = map.n - 1;
     groupTSP(map, groupTour, k);
     
-    // optimized naive TSP
+    //optimized naive TSP
     Tour optimizedTour;
     int depth = 2;
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
 
-    printDev(randomTour, naiveTour, groupTour, optimizedTour);
+    // printDev(randomTour, naiveTour, groupTour, optimizedTour);
     printKattis(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
