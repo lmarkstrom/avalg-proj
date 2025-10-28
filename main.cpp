@@ -26,12 +26,6 @@ struct Tour {
     double dist;
 };
 
-struct Graph {
-    int n;
-    std::vector<int> numEdges;
-    std::vector<std::vector<double>> edges;
-};
-
 void readMap(Map& map) {
     // first read the number of nodes
     std::cin >> map.n;
@@ -45,13 +39,6 @@ void readMap(Map& map) {
         std::cin >> x >> y;
         Coordinate coord = {i, x, y};
         map.coordinates[i] = coord;
-    }
-}
-
-void printMap(const Map& map) {
-    // print every point on the map
-    for (const auto& coord : map.coordinates) {
-        std::cout << coord.id << ": " << coord.x << " " << coord.y << std::endl;
     }
 }
 
@@ -110,187 +97,65 @@ void naiveTSP(const Map& map, Tour& tour, int start) {
 }
 
 void randomTSP(const Map& map, Tour& tour) {
-    // set vector size
-    tour.path.resize(map.n);
-    // set number of nodes in tour
-    tour.m = map.n;
-    // create used vector
-    std::vector<int> used = std::vector<int>(map.n, 0);
+    for(int i = 0; i < 1000; ++i){
+        Tour randomTourTmp;
+        // set vector size
+        randomTourTmp.path.resize(map.n);
+        // set number of nodes in tour
+        randomTourTmp.m = map.n;
+        // create used vector
+        std::vector<int> used = std::vector<int>(map.n, 0);
 
-    // construct tour
-    for (int i = 0; i < tour.m; ++i) {
-        int r = rand() % map.n;
-        while (used[r]) {
-            r = rand() % map.n;
+        // construct tour
+        for (int i = 0; i < randomTourTmp.m; ++i) {
+            int r = rand() % map.n;
+            while (used[r]) {
+                r = rand() % map.n;
+            }
+            randomTourTmp.path[i] = r;
+            used[r] = 1;
         }
-        tour.path[i] = r;
-        used[r] = 1;
-    }
 
-    // calculate dist
-    tour.dist = 0.0;
-    calculateDist(tour, map);
+        // calculate dist
+        randomTourTmp.dist = 0.0;
+        calculateDist(randomTourTmp, map);
+        if(i == 0 || randomTourTmp.dist < tour.dist){
+            tour = randomTourTmp;
+        }
+    }
 }
 
-void createGroups(const Map& map, std::vector<Map>& groups, int k) {
-    std::vector<int> groupLeaders;
-    std::vector<bool> used = std::vector<bool>(map.n, false);
+void optimizeNaiveLocal(const Map& map, Tour& tour) {
+    bool improved = true;
+    while (improved) {
+        improved = false;
+        for (int i = 0; i < tour.m - 1; i++) {
+            for (int j = i + 2; j < tour.m; j++) {
+                // switch two pairs
+                int a = tour.path[i];
+                int b = tour.path[i + 1];
+                int c = tour.path[j];
+                int d = tour.path[(j + 1) % tour.m];
+                
+                double oldDist = distance(map.coordinates[a], map.coordinates[b]) + distance(map.coordinates[c], map.coordinates[d]);
+                double newDist = distance(map.coordinates[a], map.coordinates[c]) + distance(map.coordinates[b], map.coordinates[d]);
 
-    groupLeaders.push_back(rand() % map.n);
-    while(groupLeaders.size() <= k){
-        int maxDistPos = -1;
-        double maxDist = -1.0;
-        for(int i = 0; i < map.n; ++i){
-            // check if leader
-            if(used[i]){
-                continue;
-            }
-            // calculate lowest distance to a leader
-            double lowestDistToLeader = -1.0;
-            for(const auto& leader : groupLeaders){
-                double dist = distance(map.coordinates[i], map.coordinates[leader]);
-                if(dist < lowestDistToLeader || lowestDistToLeader == -1.0){
-                    lowestDistToLeader = dist;
+                if (newDist < oldDist) {
+                    std::reverse(tour.path.begin() + i + 1, tour.path.begin() + j + 1);
+                    tour.dist += (newDist - oldDist);
+                    improved = true;
                 }
             }
-            // update max pos
-            if(maxDistPos == -1 || lowestDistToLeader > maxDist){
-                maxDistPos = i;
-                maxDist = lowestDistToLeader;
-            }
-        }
-        // add the best candidate to the group leaders
-        groupLeaders.push_back(maxDistPos);
-        used[maxDistPos] = true;
-        Map newGroup;
-        newGroup.coordinates.push_back(map.coordinates[maxDistPos]);
-        groups.push_back(newGroup);
-    }
-    // create groups based on the group leaders
-    for(int i = 0; i < map.n; i++){
-        if(used[i]){
-            continue;
-        }
-        int minDistLeader = -1;
-        double minDist = -1.0;
-        for(int j = 0; j < k; j++){
-            double dx = map.coordinates[i].x - map.coordinates[groupLeaders[j]].x;
-            double dy = map.coordinates[i].y - map.coordinates[groupLeaders[j]].y;
-            double dist = std::sqrt(dx * dx + dy * dy);
-            if (minDistLeader == -1 || dist < minDist){
-                minDistLeader = j;
-                minDist = dist;
-            }
-        }
-        groups[minDistLeader].coordinates.push_back(map.coordinates[i]);
-        used[i] = true;
-    }
-}
-
-void groupTSP(const Map& map, Tour& tour, int k) {
-    std::vector<Map> groups;
-    createGroups(map, groups, k);
-
-    // calc group avg positions
-    Map groupOrderMap;
-    groupOrderMap.n = groups.size();
-    int i = 0;
-    for(auto& group : groups){
-        double avgX = 0.0;
-        double avgY = 0.0;
-        for(const auto& coord : group.coordinates){
-            avgX += coord.x;
-            avgY += coord.y;
-        }
-        avgX /= group.coordinates.size();
-        avgY /= group.coordinates.size();
-        group.x += avgX;
-        group.y += avgY;
-        groupOrderMap.coordinates.push_back({i, avgX, avgY});
-        i++;
-    }
-    Tour groupOrderTour;
-
-    // start at every group to find the best ordering of groups
-    // saving the best tour found
-    double minDist = -1.0;
-    Tour bestGroupOrderTour;
-    for (int i = 0; i < groupOrderMap.n; i++)
-    {
-        naiveTSP(groupOrderMap, groupOrderTour, i);
-        if (minDist == -1.0 || groupOrderTour.dist < minDist)
-        {
-            minDist = groupOrderTour.dist;
-            bestGroupOrderTour = groupOrderTour;
-        }
-    }
-
-    tour.path.clear();
-
-    // insert group tours
-    for (int i = 0; i < bestGroupOrderTour.m; i++) {
-    // for (int i = 0; i < groupOrderTour.m; i++) {
-        int groupIdx = bestGroupOrderTour.path[i];
-        // int groupIdx = groupOrderTour.path[i];
-        Map& group = groups[groupIdx];
-
-        Tour groupTour;
-        groupTour.path.resize(group.coordinates.size());
-
-        Map groupMap;
-        groupMap.n = static_cast<int>(group.coordinates.size());
-        groupMap.coordinates = std::vector<Coordinate>(group.coordinates);
-
-        for (int j = 0; j < groupMap.n; ++j) {
-            groupMap.coordinates[j].id = j;
-        }
-
-        // try 10 different random starting points to find best local tour
-        // double minGroupDist = -1.0;
-        // Tour bestGroupTour;
-        // for (int i = 0; i < 10; i++) {
-        //     Tour tempGroupTour;
-        //     naiveTSP(groupMap, tempGroupTour, rand() % groupMap.n);
-        //     if (minGroupDist == -1.0 || tempGroupTour.dist < minGroupDist) {
-        //         minGroupDist = tempGroupTour.dist;
-        //         bestGroupTour = tempGroupTour;
-        //     }
-        // }
-        // groupTour = bestGroupTour;
-        naiveTSP(groupMap, groupTour, 0);
-
-        for (int j = 0; j < groupTour.m; ++j) {
-            int localIdx = groupTour.path[j];
-            int originalId = group.coordinates[localIdx].id;
-            tour.path.push_back(originalId);
-        }
-    }
-
-    tour.m = static_cast<int>(tour.path.size());
-    calculateDist(tour, map);
-}
-
-void optimizeNaiveLocal(const Map& map, Tour& tour, int depth) {
-    // make swaps to improve tour
-    for (int i = 0; i < depth; i++) {
-        for (int j = i + 1; j < tour.m; j++) {
-            std::swap(tour.path[i], tour.path[j]);
-            double oldDist = tour.dist;
-            calculateDist(tour, map);
-            if (tour.dist >= oldDist) {
-                std::swap(tour.path[i], tour.path[j]);
-                tour.dist = oldDist;
-            }
         }
     }
 }
 
-void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
+void optimizeNaiveTSP(const Map& map, Tour& tour, int iterations) {
     double minDist = -1.0;
     for(int it = 0; it < iterations; it++){
         Tour tempTour;
-        naiveTSP(map, tempTour, rand() % map.n); // naive with random start
-        optimizeNaiveLocal(map, tempTour, depth); // small local swaps
+        naiveTSP(map, tempTour, rand() % map.n);
+        optimizeNaiveLocal(map, tempTour);
         if(minDist == -1.0 || tempTour.dist < minDist){
             minDist = tempTour.dist;
             tour = tempTour;
@@ -298,130 +163,36 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
-void graphTSP(const Map& map, Tour& tour) {
-    Graph graph;
-    graph.n = map.n;
-    graph.edges.resize(map.n);
-    graph.numEdges.resize(map.n, 0);
-    // init vectors
-    for (int i = 0; i < map.n; ++i) {
-        graph.edges[i] = std::vector<double>(map.n, -1.0);
-    }
-    // add all edges
-    for (int i = 0; i < map.n; ++i) {
-        for (int j = 0; j < map.n; ++j) {
-            if (i != j) {
-                double dist = distance(map.coordinates[i], map.coordinates[j]);
-                graph.edges[i][j] = dist;
-                graph.numEdges[i]++;
-            }
-        }
-    }
-    // remove longest edges except two shortest edges for every node
-    for (int i = 0; i < graph.n; ++i) {
-        // pair (distance, node
-        std::vector<std::pair<double, int>> nodeEdges;
-        for (int j = 0; j < graph.n; ++j) {
-            if (graph.edges[i][j] > 0) {
-                nodeEdges.push_back({graph.edges[i][j], j});
-            }
-        }
-        // sort
-        std::sort(nodeEdges.begin(), nodeEdges.end());
-        
-        // keep only 2 shortest
-        for (int k = 2; k < nodeEdges.size(); ++k) {
-            int j = nodeEdges[k].second;
-            if(graph.numEdges[i] > 2 && graph.numEdges[j] > 2){
-                graph.edges[i][j] = -1.0;
-                graph.edges[j][i] = -1.0;
-                graph.numEdges[i]--;
-                graph.numEdges[j]--;
-            }
-        }
-    }
-    // debug print graph edges
-    // for (int i = 0; i < graph.n; ++i) {
-    //     std::cout << "Node " << i << ": ";
-    //     for (int j = 0; j < graph.n; ++j) {
-    //         if (graph.edges[i][j] != -1.0) {
-    //             std::cout << "(" << j << ":" << i << "," << graph.edges[i][j] << ") ";
-    //         }
-    //     }
-    //     std::cout << std::endl;
-    // }
-    
-    // find path with dfs
-    std::vector<int> path;
-    std::vector<bool> visited(graph.n, false);
-    std::function<void(int)> dfs = [&](int u) {
-        visited[u] = true;
-        path.push_back(u);
-        for (int v = 0; v < graph.n; ++v) {
-            if (graph.edges[u][v] > 0 && !visited[v]) {
-                dfs(v);
-            }
-        }
-    };
-    int startNode = 0;
-    for (int i = 0; i < graph.n; ++i) {
-        if (graph.numEdges[i] > 0) {
-            startNode = i;
-            break;
-        }
-    }
-
-    dfs(startNode);
-
-    tour.path = path;
-    tour.m = (int)path.size();
-    calculateDist(tour, map);
-}
-
-void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour, const Tour& graph){
+void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& optimizedTour){
     std::cout << "Naive tour distance: " << naiveTour.dist << std::endl;
     std::cout << "Random tour distance: " << randomTour.dist << std::endl;
-    std::cout << "Group tour distance: " << groupTour.dist << std::endl;
     std::cout << "Optimized tour distance: " << optimizedTour.dist << std::endl;
-    std::cout << "Graph tour distance: " << graph.dist << std::endl;
 }
 
 
-void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
+void printDev(Tour& randomTour, Tour& naiveTour, Tour& optimizedTour){
     std::cout << "Naive tour: \n";
     printTour(naiveTour, true);
 
     std::cout << "Random tour: \n";
     printTour(randomTour, true);
-
-    std::cout << "Group tour: \n";
-    printTour(groupTour, true);
-
     std::cout << "Optimized tour: \n";
     printTour(optimizedTour, true);
-
-    std::cout << "Graph tour: \n";
-    printTour(graph, true);
 }
 
-void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist && randomTour.dist < graph.dist){
+void printKattis(Tour& randomTour, Tour& naiveTour, Tour& optimizedTour){
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist){
         printTour(randomTour, false);
-    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist && naiveTour.dist < graph.dist){
+    } else if(naiveTour.dist < optimizedTour.dist){
         printTour(naiveTour, false);
-    } else if (groupTour.dist < optimizedTour.dist && groupTour.dist < graph.dist){
-        printTour(groupTour, false);
-    } else if(graph.dist < optimizedTour.dist){
-        printTour(optimizedTour, false);
     } else {
-        printTour(graph, false);
+        printTour(optimizedTour, false);
     }
 }
 
 int main(void) {
     Map map;
-    readMap(map); 
-    // printMap(map);
+    readMap(map);
 
     // naive TSP
     Tour naiveTour;
@@ -429,37 +200,17 @@ int main(void) {
 
     // random TSP
     Tour randomTour;
-    for(int i = 0; i < 1000; ++i){
-        Tour randomTourTmp;
-        randomTSP(map, randomTourTmp);
-        if(i == 0 || randomTourTmp.dist < randomTour.dist){
-            randomTour = randomTourTmp;
-        }
-    }
+    randomTSP(map, randomTour);
 
     //optimized naive TSP
     Tour optimizedTour;
-    int depth = 2;
     int iterations = 10;
-    optimizeNaiveTSP(map, optimizedTour, depth, iterations);
+    optimizeNaiveTSP(map, optimizedTour, iterations);
 
-    // create graph to create tour
-    Tour graph;
-    graphTSP(map, graph);
+    printKattis(randomTour, naiveTour, optimizedTour);
+    //printDev(randomTour, naiveTour, optimizedTour);
+    // printAllDistances(randomTour, naiveTour, optimizedTour);
 
-    if(map.n > 20){
-        //group TSP
-        Tour groupTour;
-        int k = static_cast<int>(std::round(std::sqrt(map.n)));
-        groupTSP(map, groupTour, k);
-        printKattis(randomTour, naiveTour, groupTour, optimizedTour, graph);
-        //printDev(randomTour, naiveTour, groupTour, optimizedTour);
-        // printAllDistances(randomTour, naiveTour, groupTour, optimizedTour, graph);
-    }else{
-        printKattis(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
-        //printDev(randomTour, naiveTour, optimizedTour, optimizedTour);
-        // printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
-    }
 
     return 0; 
 }
