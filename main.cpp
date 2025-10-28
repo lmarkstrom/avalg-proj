@@ -290,6 +290,26 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
+void printBestDistance(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour) {
+    double bestDist = randomTour.dist;
+    std::string label = "Random";
+
+    if (naiveTour.dist < bestDist) {
+        bestDist = naiveTour.dist;
+        label = "Naive";
+    }
+    if (groupTour.dist < bestDist) {
+        bestDist = groupTour.dist;
+        label = "Group";
+    }
+    if (optimizedTour.dist < bestDist) {
+        bestDist = optimizedTour.dist;
+        label = "Optimized";
+    }
+
+    std::cout << label << " tour distance: " << bestDist << std::endl;
+}
+
 void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
     std::cout << "Naive tour: \n";
     printTour(naiveTour, true);
@@ -349,8 +369,9 @@ int main(void) {
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
 
-    printDev(randomTour, naiveTour, groupTour, optimizedTour);
+    //printDev(randomTour, naiveTour, groupTour, optimizedTour);
     //printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+    printBestDistance(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
 }
