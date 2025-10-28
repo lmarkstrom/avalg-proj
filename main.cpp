@@ -150,9 +150,16 @@ void optimizeNaiveLocal(const Map& map, Tour& tour) {
     }
 }
 
-void optimizeNaiveTSP(const Map& map, Tour& tour, int iterations) {
+void optimizeNaiveTSP(const Map& map, Tour& tour) {
     double minDist = -1.0;
-    for(int it = 0; it < iterations; it++){
+    
+    int iter = 16;
+    int k = 16500;
+    int expIter = (k/map.n);
+    if (expIter > iter) 
+        iter = expIter;
+    
+    for(int i = 0; i < expIter; i++){
         Tour tempTour;
         naiveTSP(map, tempTour, rand() % map.n);
         optimizeNaiveLocal(map, tempTour);
@@ -204,8 +211,7 @@ int main(void) {
 
     //optimized naive TSP
     Tour optimizedTour;
-    int iterations = 10;
-    optimizeNaiveTSP(map, optimizedTour, iterations);
+    optimizeNaiveTSP(map, optimizedTour);
 
     printKattis(randomTour, naiveTour, optimizedTour);
     //printDev(randomTour, naiveTour, optimizedTour);

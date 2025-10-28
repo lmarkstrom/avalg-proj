@@ -20,7 +20,7 @@ def compile_cpp(source_file, output_binary):
 def extract_all_distances(output_lines):
     distances = {}
     for line in output_lines:
-        match = re.match(r"(Naive|Random|Group|Optimized|Graph) tour distance:\s*([\d.]+)", line)
+        match = re.match(r"(Naive|Random|Optimized) tour distance:\s*([\d.]+)", line)
         if match:
             label = match.group(1)
             dist = float(match.group(2))
@@ -31,8 +31,8 @@ def run_tests(executable, folder, prefix, start, end):
     GREEN = "\033[92m"
     RESET = "\033[0m"
 
-    print(f"{'Test File':<15} {'Points':>7} {'Naive':>10} {'Random':>10} {'Group':>10} {'Optimized':>10} {'Graph':>10}")
-    print("-" * 75)
+    print(f"{'Test File':<15} {'Points':>10} {'Naive':>10} {'Random':>10} {'Optimized':>10}")
+    print("-" * 55)
 
     for i in range(start, end + 1):
         test_file = os.path.join(folder, f"{prefix}{i}.txt")
@@ -49,11 +49,11 @@ def run_tests(executable, folder, prefix, start, end):
                 output = result.stdout.strip().splitlines()
                 distances = extract_all_distances(output)
 
-                if len(distances) == 5:
+                if len(distances) == 3:
                     best_label = min(distances, key=distances.get)
                     print(f"{prefix}{i}.txt".ljust(15), f"{num_points:>7}", end="")
 
-                    for label in ["Naive", "Random", "Group", "Optimized", "Graph"]:
+                    for label in ["Naive", "Random", "Optimized"]:
                         dist = distances[label]
                         if label == best_label:
                             print(f"{GREEN}{dist:>10.2f}{RESET}", end="")
