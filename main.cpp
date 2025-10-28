@@ -340,20 +340,20 @@ void graphTSP(const Map& map, Tour& tour) {
             }
         }
     }
-    //print graph edges
-    for (int i = 0; i < graph.n; ++i) {
-        std::cout << "Node " << i << ": ";
-        for (int j = 0; j < graph.n; ++j) {
-            if (graph.edges[i][j] != -1.0) {
-                std::cout << "(" << j << ":" << i << "," << graph.edges[i][j] << ") ";
-            }
-        }
-        std::cout << std::endl;
-    }
+    // debug print graph edges
+    // for (int i = 0; i < graph.n; ++i) {
+    //     std::cout << "Node " << i << ": ";
+    //     for (int j = 0; j < graph.n; ++j) {
+    //         if (graph.edges[i][j] != -1.0) {
+    //             std::cout << "(" << j << ":" << i << "," << graph.edges[i][j] << ") ";
+    //         }
+    //     }
+    //     std::cout << std::endl;
+    // }
     
+    // find path with dfs
     std::vector<int> path;
     std::vector<bool> visited(graph.n, false);
-
     std::function<void(int)> dfs = [&](int u) {
         visited[u] = true;
         path.push_back(u);
@@ -363,8 +363,6 @@ void graphTSP(const Map& map, Tour& tour) {
             }
         }
     };
-
-    // Start from any node that has edges
     int startNode = 0;
     for (int i = 0; i < graph.n; ++i) {
         if (graph.numEdges[i] > 0) {
@@ -375,17 +373,17 @@ void graphTSP(const Map& map, Tour& tour) {
 
     dfs(startNode);
 
-    // Save traversal result
     tour.path = path;
     tour.m = (int)path.size();
     calculateDist(tour, map);
 }
 
-void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour) {
+void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour, const Tour& graph){
     std::cout << "Naive tour distance: " << naiveTour.dist << std::endl;
     std::cout << "Random tour distance: " << randomTour.dist << std::endl;
     std::cout << "Group tour distance: " << groupTour.dist << std::endl;
     std::cout << "Optimized tour distance: " << optimizedTour.dist << std::endl;
+    std::cout << "Graph tour distance: " << graph.dist << std::endl;
 }
 
 
@@ -400,21 +398,23 @@ void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimize
     printTour(groupTour, true);
 
     std::cout << "Optimized tour: \n";
-    printTour(optimizedTour);
+    printTour(optimizedTour, true);
 
     std::cout << "Graph tour: \n";
-    printTour(graph);
+    printTour(graph, true);
 }
 
-void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist){
+void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist && randomTour.dist < graph.dist){
         printTour(randomTour, false);
-    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist){
+    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist && naiveTour.dist < graph.dist){
         printTour(naiveTour, false);
-    } else if (groupTour.dist < optimizedTour.dist){
+    } else if (groupTour.dist < optimizedTour.dist && groupTour.dist < graph.dist){
         printTour(groupTour, false);
-    } else {
+    } else if(graph.dist < optimizedTour.dist){
         printTour(optimizedTour, false);
+    } else {
+        printTour(graph, false);
     }
 }
 
@@ -452,15 +452,13 @@ int main(void) {
         Tour groupTour;
         int k = static_cast<int>(std::round(std::sqrt(map.n)));
         groupTSP(map, groupTour, k);
-        printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+        printKattis(randomTour, naiveTour, groupTour, optimizedTour, graph);
         //printDev(randomTour, naiveTour, groupTour, optimizedTour);
-        //printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
-
-
+        // printAllDistances(randomTour, naiveTour, groupTour, optimizedTour, graph);
     }else{
-        printKattis(randomTour, naiveTour, optimizedTour, optimizedTour);
+        printKattis(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
         //printDev(randomTour, naiveTour, optimizedTour, optimizedTour);
-        //printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour);
+        // printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
     }
 
     return 0; 
