@@ -25,15 +25,10 @@ struct Tour {
     double dist;
 };
 
-struct Edge {
-    int from;
-    int to;
-    double weight;
-};
-
 struct Graph {
     int n;
-    std::vector<std::vector<Edge>> edges;
+    std::vector<int> numEdges;
+    std::vector<std::vector<double>> edges;
 };
 
 void readMap(Map& map) {
@@ -302,38 +297,51 @@ void graphTSP(const Map& map, Tour& tour) {
     Graph graph;
     graph.n = map.n;
     graph.edges.resize(map.n);
+    graph.numEdges.resize(map.n, 0);
     // init vectors
     for (int i = 0; i < map.n; ++i) {
-        graph.edges[i] = std::vector<Edge>(map.n-1);
+        graph.edges[i] = std::vector<double>(map.n-1, -1.0);
     }
     // add all edges
     for (int i = 0; i < map.n; ++i) {
         for (int j = 0; j < map.n; ++j) {
             if (i != j) {
                 double dist = distance(map.coordinates[i], map.coordinates[j]);
-                graph.edges[i][j] = {i, j, dist};
+                graph.edges[i][j] = dist;
+                graph.numEdges[i]++;
             }
         }
     }
     // remove longest edges except two shortest edges for every node
     for (int i = 0; i < graph.n; ++i) {
-        std::vector<Edge> nodeEdges = graph.edges[i];
-        std::sort(nodeEdges.begin(), nodeEdges.end(), [](const Edge& a, const Edge& b) {
-            return a.weight > b.weight;
-        });
-        for (int j = 2; j < nodeEdges.size(); ++j) {
-            // check if node still has 2 edges left if removed
-            if(graph.edges[j].size() > 2){
-                // remove edge
-                // graph.edges[i][j] = null;
-                // graph.edges[j][i] = null;
+        // sort and filter out dist < 0
+        std::vector<double> nodeEdges = graph.edges[i];
+        nodeEdges.erase(std::remove(nodeEdges.begin(), nodeEdges.end(), -1.0), nodeEdges.end());
+        std::sort(nodeEdges.begin(), nodeEdges.end(), std::greater<double>());
+        for (int j = 1; j < nodeEdges.size(); ++j) {
+            if(graph.numEdges[i] > 2 && graph.numEdges[j] > 2){
+                graph.edges[i][j] = -1.0;
+                graph.edges[j][i] = -1.0;
+                graph.numEdges[i]--;
+                graph.numEdges[j]--;
             }
             
         }
     }
+    //print graph edges
+    for (int i = 0; i < graph.n; ++i) {
+        std::cout << "Node " << i << ": ";
+        for (int j = 0; j < graph.n; ++j) {
+            if (graph.edges[i][j] != -1.0) {
+                std::cout << "(" << j << ":" << i << "," << graph.edges[i][j] << ") ";
+            }
+        }
+        std::cout << std::endl;
+    }
+    
 }
 
-void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
+void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
     std::cout << "Naive tour: \n";
     printTour(naiveTour);
 
@@ -345,6 +353,9 @@ void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimize
 
     std::cout << "Optimized tour: \n";
     printTour(optimizedTour);
+
+    std::cout << "Graph tour: \n";
+    printTour(graph);
 }
 
 void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
