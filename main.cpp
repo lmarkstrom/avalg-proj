@@ -205,23 +205,25 @@ void groupTSP(const Map& map, Tour& tour, int k) {
 
     // start at every group to find the best ordering of groups
     // saving the best tour found
-    double minDist = -1.0;
-    Tour bestGroupOrderTour;
+    // double minDist = -1.0;
+    // Tour bestGroupOrderTour;
     for (int i = 0; i < groupOrderMap.n; i++)
     {
         naiveTSP(groupOrderMap, groupOrderTour, i);
-        if (minDist == -1.0 || groupOrderTour.dist < minDist)
-        {
-            minDist = groupOrderTour.dist;
-            bestGroupOrderTour = groupOrderTour;
-        }
+        // if (minDist == -1.0 || groupOrderTour.dist < minDist)
+        // {
+        //     minDist = groupOrderTour.dist;
+        //     bestGroupOrderTour = groupOrderTour;
+        // }
     }
 
     tour.path.clear();
 
     // insert group tours
-    for (int i = 0; i < bestGroupOrderTour.m; i++) {
-        int groupIdx = bestGroupOrderTour.path[i];
+    // for (int i = 0; i < bestGroupOrderTour.m; i++) {
+    for (int i = 0; i < groupOrderTour.m; i++) {
+        // int groupIdx = bestGroupOrderTour.path[i];
+        int groupIdx = groupOrderTour.path[i];
         Map& group = groups[groupIdx];
 
         Tour groupTour;
@@ -236,17 +238,18 @@ void groupTSP(const Map& map, Tour& tour, int k) {
         }
 
         // try 10 different random starting points to find best local tour
-        double minGroupDist = -1.0;
-        Tour bestGroupTour;
-        for (int i = 0; i < 10; i++) {
-            Tour tempGroupTour;
-            naiveTSP(groupMap, tempGroupTour, rand() % groupMap.n);
-            if (minGroupDist == -1.0 || tempGroupTour.dist < minGroupDist) {
-                minGroupDist = tempGroupTour.dist;
-                bestGroupTour = tempGroupTour;
-            }
-        }
-        groupTour = bestGroupTour;
+        // double minGroupDist = -1.0;
+        // Tour bestGroupTour;
+        // for (int i = 0; i < 10; i++) {
+        //     Tour tempGroupTour;
+        //     naiveTSP(groupMap, tempGroupTour, rand() % groupMap.n);
+        //     if (minGroupDist == -1.0 || tempGroupTour.dist < minGroupDist) {
+        //         minGroupDist = tempGroupTour.dist;
+        //         bestGroupTour = tempGroupTour;
+        //     }
+        // }
+        // groupTour = bestGroupTour;
+        naiveTSP(groupMap, groupTour, 0);
 
         for (int j = 0; j < groupTour.m; ++j) {
             int localIdx = groupTour.path[j];
