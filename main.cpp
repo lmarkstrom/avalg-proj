@@ -198,13 +198,26 @@ void groupTSP(const Map& map, Tour& tour, int k) {
         i++;
     }
     Tour groupOrderTour;
-    naiveTSP(groupOrderMap, groupOrderTour, 0);
+
+    // start at every group to find the best ordering of groups
+    // saving the best tour found
+    double minDist = -1.0;
+    Tour bestGroupOrderTour;
+    for (int i = 0; i < groupOrderMap.n; i++)
+    {
+        naiveTSP(groupOrderMap, groupOrderTour, i);
+        if (minDist == -1.0 || groupOrderTour.dist < minDist)
+        {
+            minDist = groupOrderTour.dist;
+            bestGroupOrderTour = groupOrderTour;
+        }
+    }
 
     tour.path.clear();
 
     // insert group tours
-    for (int i = 0; i < groupOrderTour.m; i++) {
-        int groupIdx = groupOrderTour.path[i];
+    for (int i = 0; i < bestGroupOrderTour.m; i++) {
+        int groupIdx = bestGroupOrderTour.path[i];
         Map& group = groups[groupIdx];
 
         Tour groupTour;
