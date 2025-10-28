@@ -28,6 +28,9 @@ def extract_all_distances(output_lines):
     return distances
 
 def run_tests(executable, folder, prefix, start, end):
+    GREEN = "\033[92m"
+    RESET = "\033[0m"
+
     print(f"{'Test File':<15} {'Points':>7} {'Naive':>10} {'Random':>10} {'Group':>10} {'Optimized':>10}")
     print("-" * 65)
 
@@ -45,17 +48,23 @@ def run_tests(executable, folder, prefix, start, end):
                 )
                 output = result.stdout.strip().splitlines()
                 distances = extract_all_distances(output)
+
                 if len(distances) == 4:
-                    print(f"{prefix}{i}.txt".ljust(15),
-                          f"{num_points:>7}",
-                          f"{distances['Naive']:>10.2f}",
-                          f"{distances['Random']:>10.2f}",
-                          f"{distances['Group']:>10.2f}",
-                          f"{distances['Optimized']:>10.2f}")
+                    best_label = min(distances, key=distances.get)
+                    print(f"{prefix}{i}.txt".ljust(15), f"{num_points:>7}", end="")
+
+                    for label in ["Naive", "Random", "Group", "Optimized"]:
+                        dist = distances[label]
+                        if label == best_label:
+                            print(f"{GREEN}{dist:>10.2f}{RESET}", end="")
+                        else:
+                            print(f"{dist:>10.2f}", end="")
+                    print()
                 else:
                     print(f"{prefix}{i}.txt".ljust(15), f"{num_points:>7}", "Incomplete".rjust(48))
         except FileNotFoundError:
             print(f"{prefix}{i}.txt".ljust(15), "N/A".rjust(7), "File not found".rjust(48))
+
 
 
 if __name__ == "__main__":
