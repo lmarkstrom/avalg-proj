@@ -47,13 +47,14 @@ void printMap(const Map& map) {
     }
 }
 
-void printTour(const Tour& tour) {
-    // print each point in tour
-    for (const auto& node : tour.path) {
-        std::cout << node << "\n";
-    }
-    // std::cout << tour.dist << std::endl;
-    // std::cout << std::endl;
+void printTour(const Tour& tour, bool dist) {
+    // print each point in 
+    if(!dist){
+        for (const auto& node : tour.path) {
+            std::cout << node << "\n";
+        }
+    } else
+        std::cout << tour.dist << std::endl;
 }
 
 void calculateDist(Tour& tour, const Map& map) {
@@ -288,27 +289,27 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
 
 void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
     std::cout << "Naive tour: \n";
-    printTour(naiveTour);
+    printTour(naiveTour, true);
 
     std::cout << "Random tour: \n";
-    printTour(randomTour);
+    printTour(randomTour, true);
 
     std::cout << "Group tour: \n";
-    printTour(groupTour);
+    printTour(groupTour, true);
 
     std::cout << "Optimized tour: \n";
-    printTour(optimizedTour);
+    printTour(optimizedTour, true);
 }
 
 void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
     if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist){
-        printTour(randomTour);
+        printTour(randomTour, false);
     } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist){
-        printTour(naiveTour);
+        printTour(naiveTour, false);
     } else if (groupTour.dist < optimizedTour.dist){
-        printTour(groupTour);
+        printTour(groupTour, false);
     } else {
-        printTour(optimizedTour);
+        printTour(optimizedTour, false);
     }
 }
 
@@ -345,8 +346,8 @@ int main(void) {
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
 
-    // printDev(randomTour, naiveTour, groupTour, optimizedTour);
-    printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+    printDev(randomTour, naiveTour, groupTour, optimizedTour);
+    //printKattis(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
 }
