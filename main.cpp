@@ -205,25 +205,25 @@ void groupTSP(const Map& map, Tour& tour, int k) {
 
     // start at every group to find the best ordering of groups
     // saving the best tour found
-    // double minDist = -1.0;
-    // Tour bestGroupOrderTour;
+    double minDist = -1.0;
+    Tour bestGroupOrderTour;
     for (int i = 0; i < groupOrderMap.n; i++)
     {
         naiveTSP(groupOrderMap, groupOrderTour, i);
-        // if (minDist == -1.0 || groupOrderTour.dist < minDist)
-        // {
-        //     minDist = groupOrderTour.dist;
-        //     bestGroupOrderTour = groupOrderTour;
-        // }
+        if (minDist == -1.0 || groupOrderTour.dist < minDist)
+        {
+            minDist = groupOrderTour.dist;
+            bestGroupOrderTour = groupOrderTour;
+        }
     }
 
     tour.path.clear();
 
     // insert group tours
-    // for (int i = 0; i < bestGroupOrderTour.m; i++) {
-    for (int i = 0; i < groupOrderTour.m; i++) {
-        // int groupIdx = bestGroupOrderTour.path[i];
-        int groupIdx = groupOrderTour.path[i];
+    for (int i = 0; i < bestGroupOrderTour.m; i++) {
+    // for (int i = 0; i < groupOrderTour.m; i++) {
+        int groupIdx = bestGroupOrderTour.path[i];
+        // int groupIdx = groupOrderTour.path[i];
         Map& group = groups[groupIdx];
 
         Tour groupTour;
@@ -364,13 +364,16 @@ int main(void) {
         int k = static_cast<int>(std::round(std::sqrt(map.n)));
         groupTSP(map, groupTour, k);
         printKattis(randomTour, naiveTour, groupTour, optimizedTour);
+        //printDev(randomTour, naiveTour, groupTour, optimizedTour);
+        //printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
+
 
     }else{
         printKattis(randomTour, naiveTour, optimizedTour, optimizedTour);
+        //printDev(randomTour, naiveTour, optimizedTour, optimizedTour);
+        //printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour);
     }
-    //printDev(randomTour, naiveTour, groupTour, optimizedTour);
-
-    //printAllDistances(randomTour, naiveTour, groupTour, optimizedTour);
+    
 
     return 0; 
 }
