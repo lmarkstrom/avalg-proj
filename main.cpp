@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <functional>
 using namespace std;
 
 // coordinate struct
@@ -57,9 +58,9 @@ void printMap(const Map& map) {
 void printTour(const Tour& tour) {
     // print each point in tour
     for (const auto& node : tour.path) {
-        std::cout << node << "\n";
+        // std::cout << node << "\n";
     }
-    // std::cout << tour.dist << std::endl;
+    std::cout << tour.dist << std::endl;
     // std::cout << std::endl;
 }
 
@@ -300,7 +301,7 @@ void graphTSP(const Map& map, Tour& tour) {
     graph.numEdges.resize(map.n, 0);
     // init vectors
     for (int i = 0; i < map.n; ++i) {
-        graph.edges[i] = std::vector<double>(map.n-1, -1.0);
+        graph.edges[i] = std::vector<double>(map.n, -1.0);
     }
     // add all edges
     for (int i = 0; i < map.n; ++i) {
@@ -346,6 +347,34 @@ void graphTSP(const Map& map, Tour& tour) {
         std::cout << std::endl;
     }
     
+    std::vector<int> path;
+    std::vector<bool> visited(graph.n, false);
+
+    std::function<void(int)> dfs = [&](int u) {
+        visited[u] = true;
+        path.push_back(u);
+        for (int v = 0; v < graph.n; ++v) {
+            if (graph.edges[u][v] > 0 && !visited[v]) {
+                dfs(v);
+            }
+        }
+    };
+
+    // Start from any node that has edges
+    int startNode = 0;
+    for (int i = 0; i < graph.n; ++i) {
+        if (graph.numEdges[i] > 0) {
+            startNode = i;
+            break;
+        }
+    }
+
+    dfs(startNode);
+
+    // Save traversal result
+    tour.path = path;
+    tour.m = (int)path.size();
+    calculateDist(tour, map);
 }
 
 void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
