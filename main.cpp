@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
+#include <functional>
 using namespace std;
 
 // coordinate struct
@@ -22,6 +24,12 @@ struct Tour {
     int m;
     std::vector<int> path;
     double dist;
+};
+
+struct Graph {
+    int n;
+    std::vector<int> numEdges;
+    std::vector<std::vector<double>> edges;
 };
 
 void readMap(Map& map) {
@@ -290,6 +298,89 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
+void graphTSP(const Map& map, Tour& tour) {
+    Graph graph;
+    graph.n = map.n;
+    graph.edges.resize(map.n);
+    graph.numEdges.resize(map.n, 0);
+    // init vectors
+    for (int i = 0; i < map.n; ++i) {
+        graph.edges[i] = std::vector<double>(map.n, -1.0);
+    }
+    // add all edges
+    for (int i = 0; i < map.n; ++i) {
+        for (int j = 0; j < map.n; ++j) {
+            if (i != j) {
+                double dist = distance(map.coordinates[i], map.coordinates[j]);
+                graph.edges[i][j] = dist;
+                graph.numEdges[i]++;
+            }
+        }
+    }
+    // remove longest edges except two shortest edges for every node
+    for (int i = 0; i < graph.n; ++i) {
+        // pair (distance, node
+        std::vector<std::pair<double, int>> nodeEdges;
+        for (int j = 0; j < graph.n; ++j) {
+            if (graph.edges[i][j] > 0) {
+                nodeEdges.push_back({graph.edges[i][j], j});
+            }
+        }
+        // sort
+        std::sort(nodeEdges.begin(), nodeEdges.end());
+        
+        // keep only 2 shortest
+        for (int k = 2; k < nodeEdges.size(); ++k) {
+            int j = nodeEdges[k].second;
+            if(graph.numEdges[i] > 2 && graph.numEdges[j] > 2){
+                graph.edges[i][j] = -1.0;
+                graph.edges[j][i] = -1.0;
+                graph.numEdges[i]--;
+                graph.numEdges[j]--;
+            }
+        }
+    }
+    //print graph edges
+    for (int i = 0; i < graph.n; ++i) {
+        std::cout << "Node " << i << ": ";
+        for (int j = 0; j < graph.n; ++j) {
+            if (graph.edges[i][j] != -1.0) {
+                std::cout << "(" << j << ":" << i << "," << graph.edges[i][j] << ") ";
+            }
+        }
+        std::cout << std::endl;
+    }
+    
+    std::vector<int> path;
+    std::vector<bool> visited(graph.n, false);
+
+    std::function<void(int)> dfs = [&](int u) {
+        visited[u] = true;
+        path.push_back(u);
+        for (int v = 0; v < graph.n; ++v) {
+            if (graph.edges[u][v] > 0 && !visited[v]) {
+                dfs(v);
+            }
+        }
+    };
+
+    // Start from any node that has edges
+    int startNode = 0;
+    for (int i = 0; i < graph.n; ++i) {
+        if (graph.numEdges[i] > 0) {
+            startNode = i;
+            break;
+        }
+    }
+
+    dfs(startNode);
+
+    // Save traversal result
+    tour.path = path;
+    tour.m = (int)path.size();
+    calculateDist(tour, map);
+}
+
 void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& groupTour, const Tour& optimizedTour) {
     std::cout << "Naive tour distance: " << naiveTour.dist << std::endl;
     std::cout << "Random tour distance: " << randomTour.dist << std::endl;
@@ -298,7 +389,7 @@ void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour
 }
 
 
-void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
+void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour, Tour& graph){
     std::cout << "Naive tour: \n";
     printTour(naiveTour, true);
 
@@ -309,7 +400,10 @@ void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimize
     printTour(groupTour, true);
 
     std::cout << "Optimized tour: \n";
-    printTour(optimizedTour, true);
+    printTour(optimizedTour);
+
+    std::cout << "Graph tour: \n";
+    printTour(graph);
 }
 
 void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
@@ -330,11 +424,6 @@ int main(void) {
     // printMap(map);
 
     // naive TSP
-
-    
-
-
-
     Tour naiveTour;
     naiveTSP(map, naiveTour, 0);
 
@@ -348,15 +437,15 @@ int main(void) {
         }
     }
 
-    
-    
-    
     //optimized naive TSP
     Tour optimizedTour;
     int depth = 2;
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
 
+    // create graph to create tour
+    Tour graph;
+    graphTSP(map, graph);
 
     if(map.n > 20){
         //group TSP
@@ -373,7 +462,6 @@ int main(void) {
         //printDev(randomTour, naiveTour, optimizedTour, optimizedTour);
         //printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour);
     }
-    
 
     return 0; 
 }
