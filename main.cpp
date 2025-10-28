@@ -231,7 +231,18 @@ void groupTSP(const Map& map, Tour& tour, int k) {
             groupMap.coordinates[j].id = j;
         }
 
-        naiveTSP(groupMap, groupTour, 0);
+        // try 10 different random starting points to find best local tour
+        double minGroupDist = -1.0;
+        Tour bestGroupTour;
+        for (int i = 0; i < 10; i++) {
+            Tour tempGroupTour;
+            naiveTSP(groupMap, tempGroupTour, rand() % groupMap.n);
+            if (minGroupDist == -1.0 || tempGroupTour.dist < minGroupDist) {
+                minGroupDist = tempGroupTour.dist;
+                bestGroupTour = tempGroupTour;
+            }
+        }
+        groupTour = bestGroupTour;
 
         for (int j = 0; j < groupTour.m; ++j) {
             int localIdx = groupTour.path[j];
