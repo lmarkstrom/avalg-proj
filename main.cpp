@@ -84,10 +84,10 @@ void naiveTSP(const Map& map, Tour& tour, int start) {
     used[start] = true;
 
     // construct tour
-    for (int i = 1; i < tour.m; ++i) {
+    for (int i = 0; i < tour.m; ++i) {
         int best = -1;
         for (int j = 0; j < map.n; ++j) {
-            if (!used[j] && (best == -1 || distance(map.coordinates[j], map.coordinates[tour.path[i - 1]]) < distance(map.coordinates[best], map.coordinates[tour.path[i - 1]]))) {
+            if (!used[j] && (best == -1 || distance(map.coordinates[j], map.coordinates[tour.path[i]]) < distance(map.coordinates[best], map.coordinates[tour.path[i]]))) {
                 best = j;
             }
         }
@@ -234,7 +234,18 @@ void groupTSP(const Map& map, Tour& tour, int k) {
             groupMap.coordinates[j].id = j;
         }
 
-        naiveTSP(groupMap, groupTour, 0);
+        // try 10 different random starting points to find best local tour
+        double minGroupDist = -1.0;
+        Tour bestGroupTour;
+        for (int i = 0; i < 10; i++) {
+            Tour tempGroupTour;
+            naiveTSP(groupMap, tempGroupTour, rand() % groupMap.n);
+            if (minGroupDist == -1.0 || tempGroupTour.dist < minGroupDist) {
+                minGroupDist = tempGroupTour.dist;
+                bestGroupTour = tempGroupTour;
+            }
+        }
+        groupTour = bestGroupTour;
 
         for (int j = 0; j < groupTour.m; ++j) {
             int localIdx = groupTour.path[j];
@@ -275,6 +286,30 @@ void optimizeNaiveTSP(const Map& map, Tour& tour, int depth, int iterations) {
     }
 }
 
+void printDev(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
+    std::cout << "Naive tour: \n";
+    printTour(naiveTour);
+
+    std::cout << "Random tour: \n";
+    printTour(randomTour);
+
+    std::cout << "Group tour: \n";
+    printTour(groupTour);
+
+    std::cout << "Optimized tour: \n";
+    printTour(optimizedTour);
+}
+
+void printKattis(Tour& randomTour, Tour& naiveTour, Tour& groupTour, Tour& optimizedTour){
+    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist){
+        printTour(randomTour);
+    } else if(naiveTour.dist < optimizedTour.dist){
+        printTour(naiveTour);
+    } else {
+        printTour(optimizedTour);
+    }
+}
+
 int main(void) {
     Map map;
     readMap(map); 
@@ -283,8 +318,6 @@ int main(void) {
     // naive TSP
     Tour naiveTour;
     naiveTSP(map, naiveTour, 0);
-    // std::cout << "Naive tour: \n";
-    // printTour(naiveTour);
 
     // random TSP
     Tour randomTour;
@@ -295,42 +328,23 @@ int main(void) {
             randomTour = randomTourTmp;
         }
     }
-    
-    // std::cout << "Random tour: \n";
-    // printTour(randomTour);
 
+    // group TSP
     Tour groupTour;
     int k = static_cast<int>(std::round(std::sqrt(map.n)));
     if (k < 1) k = 1;
     if (k >= map.n) k = map.n - 1;
     groupTSP(map, groupTour, k);
     
-
-    // std::cout << "Naive tour: \n";
-    // printTour(naiveTour);
-    // std::cout << "Random tour: \n";
-    // printTour(randomTour);
-    // std::cout << "Group tour: \n";
-    // printTour(groupTour);
-    // std::cout << "Group tour: \n";
-    // printTour(groupTour);
-
+    // optimized naive TSP
     Tour optimizedTour;
     int depth = 2;
     int iterations = 10;
     optimizeNaiveTSP(map, optimizedTour, depth, iterations);
-    // std::cout << "Optimized tour: \n";
-    // printTour(optimizedTour);
 
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist && randomTour.dist < groupTour.dist){
-        printTour(randomTour);
-    } else if(naiveTour.dist < optimizedTour.dist && naiveTour.dist < groupTour.dist){
-        printTour(naiveTour);
-    } else if (groupTour.dist < optimizedTour.dist){
-        printTour(groupTour);
-    } else {
-        printTour(optimizedTour);
-    }
+
+    printDev(randomTour, naiveTour, groupTour, optimizedTour);
+    printKattis(randomTour, naiveTour, groupTour, optimizedTour);
 
     return 0; 
 }
