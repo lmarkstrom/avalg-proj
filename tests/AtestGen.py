@@ -1,7 +1,11 @@
 import os
 import random
 
-def generate_tsp_tests(start=2, end=30, output_folder="tests", output_prefix="test"):
+def generate_tsp_tests():
+    start=2, 
+    end=30, 
+    output_folder="tests", 
+    output_prefix="test"
 
     total_tests = end - start + 1
     small_tests = total_tests // 2
@@ -27,5 +31,4 @@ def generate_tsp_tests(start=2, end=30, output_folder="tests", output_prefix="te
                 else:
                     f.write(line) 
 
-if __name__ == "__main__":
-    generate_tsp_tests()
+generate_tsp_tests()

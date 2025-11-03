@@ -452,13 +452,13 @@ int main(void) {
         Tour groupTour;
         int k = static_cast<int>(std::round(std::sqrt(map.n)));
         groupTSP(map, groupTour, k);
-        printKattis(randomTour, naiveTour, groupTour, optimizedTour, graph);
+        // printKattis(randomTour, naiveTour, groupTour, optimizedTour, graph);
         //printDev(randomTour, naiveTour, groupTour, optimizedTour);
-        // printAllDistances(randomTour, naiveTour, groupTour, optimizedTour, graph);
+        printAllDistances(randomTour, naiveTour, groupTour, optimizedTour, graph);
     }else{
-        printKattis(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
+        // printKattis(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
         //printDev(randomTour, naiveTour, optimizedTour, optimizedTour);
-        // printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
+        printAllDistances(randomTour, naiveTour, optimizedTour, optimizedTour, graph);
     }
 
     return 0; 
