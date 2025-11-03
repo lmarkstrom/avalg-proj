@@ -170,28 +170,22 @@ void optimizeNaiveTSP(const Map& map, Tour& tour) {
     }
 }
 
-void printAllDistances(const Tour& randomTour, const Tour& naiveTour, const Tour& optimizedTour){
-    std::cout << "Naive tour distance: " << naiveTour.dist << std::endl;
+void printAllDistances(const Tour& randomTour, const Tour& optimizedTour){
     std::cout << "Random tour distance: " << randomTour.dist << std::endl;
     std::cout << "Optimized tour distance: " << optimizedTour.dist << std::endl;
 }
 
 
-void printDev(Tour& randomTour, Tour& naiveTour, Tour& optimizedTour){
-    std::cout << "Naive tour: \n";
-    printTour(naiveTour, true);
-
+void printDev(Tour& randomTour, Tour& optimizedTour){
     std::cout << "Random tour: \n";
     printTour(randomTour, true);
     std::cout << "Optimized tour: \n";
     printTour(optimizedTour, true);
 }
 
-void printKattis(Tour& randomTour, Tour& naiveTour, Tour& optimizedTour){
-    if(randomTour.dist < naiveTour.dist && randomTour.dist < optimizedTour.dist){
+void printKattis(Tour& randomTour, Tour& optimizedTour){
+    if(randomTour.dist < optimizedTour.dist){
         printTour(randomTour, false);
-    } else if(naiveTour.dist < optimizedTour.dist){
-        printTour(naiveTour, false);
     } else {
         printTour(optimizedTour, false);
     }
@@ -201,10 +195,6 @@ int main(void) {
     Map map;
     readMap(map);
 
-    // naive TSP
-    Tour naiveTour;
-    naiveTSP(map, naiveTour, 0);
-
     // random TSP
     Tour randomTour;
     randomTSP(map, randomTour);
@@ -213,9 +203,9 @@ int main(void) {
     Tour optimizedTour;
     optimizeNaiveTSP(map, optimizedTour);
 
-    printKattis(randomTour, naiveTour, optimizedTour);
-    //printDev(randomTour, naiveTour, optimizedTour);
-    // printAllDistances(randomTour, naiveTour, optimizedTour);
+    // printKattis(randomTour, optimizedTour);
+    //printDev(randomTour, optimizedTour);
+    printAllDistances(randomTour, optimizedTour);
 
     return 0; 
 }
