@@ -217,6 +217,5 @@ int main(void) {
     //printDev(randomTour, naiveTour, optimizedTour);
     // printAllDistances(randomTour, naiveTour, optimizedTour);
 
-
     return 0; 
 }

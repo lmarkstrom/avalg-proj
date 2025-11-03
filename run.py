@@ -1,21 +1,19 @@
 import subprocess
 import os
 import re
+import sys
 
-CPP_SOURCE = "main.cpp"
-EXECUTABLE = "main"
-TEST_FOLDER = "tests"
-TEST_PREFIX = "test"
-START = 1
-END = 30
+def compile_cpp():
+    print("Compiling.")
+    r = subprocess.run(["g++", "-O2", "-std=c++17", "main.cpp", "-o", "main"], capture_output=True, text=True)
+    if r.returncode != 0:
+        print("Compilation failed:\n", r.stderr)
+        sys.exit(1)
+    print("Compilation successful.\n")
 
-def compile_cpp(source_file, output_binary):
-    print("Compiling C++ source...")
-    result = subprocess.run(["g++", "-O2", "-std=c++17", source_file, "-o", output_binary])
-    if result.returncode != 0:
-        print("Compilation failed.")
-        exit(1)
-    print("Compilation successful.")
+def extract_distances(out):
+    p = re.compile(r"(Naive|Random|Group|Optimized|Graph) tour distance:\s*([\d.]+)")
+    return {a: float(b) for a, b in p.findall(out)}
 
 def extract_all_distances(output_lines):
     distances = {}
