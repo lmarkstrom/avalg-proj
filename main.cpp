@@ -156,8 +156,8 @@ void optimizeNaiveTSP(const Map& map, Tour& tour) {
     int iter = 16;
     int k = 16500;
     int expIter = (k/map.n);
-    if (expIter > iter) 
-        iter = expIter;
+    if (expIter > map.n) 
+        expIter = map.n;
     
     for(int i = 0; i < expIter; i++){
         Tour tempTour;
